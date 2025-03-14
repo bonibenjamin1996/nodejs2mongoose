@@ -29,27 +29,30 @@ mongoose.connect('mongodb+srv://bonisigoubenjamin:boni1996@benjamin.feide.mongod
 });
 
 // Création de tâche
+
 app.post("/tasks", async (req, res) => {
     try {
-        const { title, content } = req.body;
+        const { title, content, completed } = req.body;
         
         if (!title) {
             return res.status(400).json({ message: "Title is required" });
         }
         
-        const newTask = new Task({ title, content, completed: completed || false });
+        const newTask = new Task({ title, content, completed: completed ?? false });
         
         await newTask.save();
         res.status(201).json(newTask);
     } catch (error) {
-        res.status(500).json({ message: "Erreur serveur", error });
+        console.error("❌ Erreur serveur :", error);  // Affiche l'erreur dans la console
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
     }
 });
+
 
 // Récupération des tâches
 app.get("/tasks", async (req, res) => {
     try {
-        const tasks = await Note.find();
+        const tasks = await Task.find();
         res.json(tasks);
     } catch (error) {
         res.status(500).json({ message: "Erreur serveur", error });
@@ -59,8 +62,9 @@ app.get("/tasks", async (req, res) => {
 // Récupération d'une tâche par ID
 app.get("/tasks/:id", async (req, res) => {
     try {
-        const task = await Note.findById(req.params.id);
-
+       
+        const task = await Task.findById(req.params.id);
+         
         if (!task) return res.status(404).json({ message: "Task not found" });
         res.json(task);
     } catch (error) {
@@ -73,7 +77,7 @@ app.put("/tasks/:id", async (req, res) => {
     try {
         const { title, content, completed } = req.body;
         
-        const task = await Note.findByIdAndUpdate(
+        const task = await Task.findByIdAndUpdate(
             req.params.id,
             { title, content, completed },
             { new: true }
@@ -89,7 +93,7 @@ app.put("/tasks/:id", async (req, res) => {
 // Suppression d'une tâche
 app.delete("/tasks/:id", async (req, res) => {
     try {
-        const task = await Note.findByIdAndDelete(req.params.id);
+        const task = await Task.findByIdAndDelete(req.params.id);
         
         if (!task) return res.status(404).json({ message: "Task not found" });
         res.status(204).send();
